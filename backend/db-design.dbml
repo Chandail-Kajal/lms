@@ -1,0 +1,244 @@
+Enum UserRole {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+Enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+Enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+Enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+}
+
+Enum EventType {
+  WEBINAR
+  WORKSHOP
+  LIVE_CLASS
+}
+
+Enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+Enum VerificationType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+Table users {
+  id varchar [pk]
+  name varchar
+  email varchar [unique]
+  mobileNumber varchar [unique]
+  password varchar
+
+  role UserRole
+
+  emailVerified boolean
+  emailVerifiedAt datetime
+
+  googleId varchar [unique]
+  linkedInId varchar [unique]
+
+  profilePicture varchar
+
+  isActive boolean
+  isDeleted boolean
+
+  createdAt datetime
+  updatedAt datetime
+}
+
+Table refresh_tokens {
+  id varchar [pk]
+
+  userId varchar [not null]
+
+  tokenHash varchar
+
+  deviceName varchar
+  ipAddress varchar
+  userAgent varchar
+
+  expiresAt datetime
+  revokedAt datetime
+
+  createdAt datetime
+}
+
+Table courses {
+  id varchar [pk]
+
+  title varchar
+  slug varchar [unique]
+  description text
+
+  thumbnail varchar
+  bannerImage varchar
+
+  price decimal
+  isFree boolean
+
+  durationHours int
+
+  published boolean
+
+  instructorId varchar
+
+  createdAt datetime
+  updatedAt datetime
+}
+
+Table enrollments {
+  id varchar [pk]
+
+  userId varchar
+  courseId varchar
+
+  progress float
+
+  status EnrollmentStatus
+
+  enrolledAt datetime
+  completedAt datetime
+
+  indexes {
+    (userId, courseId) [unique]
+  }
+}
+
+Table subscription_plans {
+  id varchar [pk]
+
+  name varchar
+  description varchar
+
+  price decimal
+
+  billingCycle BillingCycle
+
+  courseLimit int
+
+  active boolean
+
+  createdAt datetime
+  updatedAt datetime
+}
+
+Table user_subscriptions {
+  id varchar [pk]
+
+  userId varchar
+  planId varchar
+
+  status SubscriptionStatus
+
+  startDate datetime
+  endDate datetime
+
+  autoRenew boolean
+
+  createdAt datetime
+}
+
+Table events {
+  id varchar [pk]
+
+  title varchar
+  description text
+
+  type EventType
+
+  startDate datetime
+  endDate datetime
+
+  meetingLink varchar
+
+  maxParticipants int
+
+  createdAt datetime
+  updatedAt datetime
+}
+
+Table event_registrations {
+  id varchar [pk]
+
+  userId varchar
+  eventId varchar
+
+  attended boolean
+
+  createdAt datetime
+
+  indexes {
+    (userId, eventId) [unique]
+  }
+}
+
+Table payments {
+  id varchar [pk]
+
+  userId varchar
+
+  amount decimal
+
+  currency varchar
+
+  paymentGateway varchar
+
+  gatewayOrderId varchar
+  gatewayPaymentId varchar
+
+  status PaymentStatus
+
+  createdAt datetime
+}
+
+Table verification_tokens {
+  id varchar [pk]
+
+  userId varchar
+
+  otp varchar
+
+  verified boolean
+
+  type VerificationType
+
+  expiresAt datetime
+
+  createdAt datetime
+}
+
+Ref: refresh_tokens.userId > users.id [delete: cascade]
+
+Ref: courses.instructorId > users.id
+
+Ref: enrollments.userId > users.id [delete: cascade]
+Ref: enrollments.courseId > courses.id [delete: cascade]
+
+Ref: user_subscriptions.userId > users.id [delete: cascade]
+Ref: user_subscriptions.planId > subscription_plans.id
+
+Ref: event_registrations.userId > users.id [delete: cascade]
+Ref: event_registrations.eventId > events.id [delete: cascade]
+
+Ref: payments.userId > users.id
+
+Ref: verification_tokens.userId > users.id [delete: cascade]

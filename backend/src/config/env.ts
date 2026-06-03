@@ -1,0 +1,72 @@
+import { loadEnv } from "../libs/env";
+const envFile = `.env.${process.env.NODE_ENV || "dev"}`;
+const raw = loadEnv(envFile);
+
+export const env = {
+  IS_PRODUCTION: raw.NODE_ENV === "production",
+  NODE_ENV: raw.NODE_ENV || "dev",
+  PORT: Number(raw.PORT) || 3000,
+  ALLOWED_ORIGINS: raw.ALLOWED_ORIGINS?.split(" ") || ["*"],
+
+  S3_REGION: raw.S3_REGION || "",
+  S3_ENDPOINT: raw.S3_ENDPOINT || "",
+  S3_BUCKET: raw.S3_BUCKET || "",
+  S3_ACCESS_KEY: raw.S3_ACCESS_KEY || "",
+  S3_SECRET_KEY: raw.S3_SECRET_KEY || "",
+  S3_FORCE_PATH_STYLE: raw.S3_FORCE_PATH_STYLE === "true" || false,
+  S3_BUCKET_FOLDER: raw.S3_BUCKET_FOLDER || "",
+
+  ACCESS_TOKEN_SECRET: raw.ACCESS_TOKEN_SECRET || "ACCESSS_SECRET_V2",
+  REFRESH_TOKEN_SECRET: raw.REFRESH_TOKEN_SECRET || "REFRESH_SECRET_V2",
+
+  DATABASE_URL_SQL: raw.DATABASE_URL_SQL || "",
+  MONGO_URI: raw.MONGO_URI || "",
+
+  REDIS_HOST: raw.REDIS_HOST || "127.0.0.1",
+  REDIS_PORT: Number(raw.REDIS_PORT) || 6379,
+
+  PRIVATE_VAPID_KEY: raw.PRIVATE_VAPID_KEY,
+  PUBLIC_VAPID_KEY: raw.PUBLIC_VAPID_KEY,
+  PUBLIC_URL: raw.PUBLIC_URL || "",
+
+  ENCRYPTION_KEY: raw.ENCRYPTION_KEY,
+
+  MAIL_HOST: raw.MAIL_HOST,
+  MAIL_PORT: Number(raw.MAIL_PORT) || 587,
+  MAIL_USER: raw.MAIL_USER,
+  MAIL_PASS: raw.MAIL_PASS,
+  MAIL_FROM: raw.MAIL_FROM,
+  MAIL_SECURITY: raw.MAIL_SECURITY === "true",
+
+  PDF_SERVICE_URL: raw.PDF_SERVICE_URL || "",
+
+  LOG_LEVEL: raw.LOG_LEVEL,
+
+  // Migration related fields
+  MIGRATE_FROM_MONGO_URI: raw.MIGRATE_FROM_MONGO_URI,
+  MIGRATE_FROM_MONGO_DATABASE_NAME: raw.MIGRATE_FROM_MONGO_DATABASE_NAME,
+  MIGRATE_TO_MONGO_URI: raw.MIGRATE_TO_MONGO_URI,
+  MIGRATE_TO_MONGO_DATABASE_NAME: raw.MIGRATE_TO_MONGO_DATABASE_NAME,
+
+  BACKEND_URL:
+    raw.BACKEND_URL || "http://localhost:5000",
+
+    FRONTEND_URL:
+    raw.FRONTEND_URL || "http://localhost:3000",
+
+
+  // maintenance
+  DEV_MAIL: raw.DEV_MAIL?.split(" ") || [],
+GOOGLE_CLIENT_ID:
+    raw.GOOGLE_CLIENT_ID || "",
+
+  GOOGLE_CLIENT_SECRET:
+    raw.GOOGLE_CLIENT_SECRET || "",
+
+  // LinkedIn OAuth
+  LINKEDIN_CLIENT_ID:
+    raw.LINKEDIN_CLIENT_ID || "",
+
+  LINKEDIN_CLIENT_SECRET:
+    raw.LINKEDIN_CLIENT_SECRET || "",
+};

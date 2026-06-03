@@ -1,0 +1,290 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+}
+
+model User {
+  id           String  @id @default(uuid())
+  name         String
+  email        String  @unique
+  mobileNumber String? @unique
+  password     String?
+
+  role UserRole @default(STUDENT)
+
+  emailVerified   Boolean   @default(false)
+  emailVerifiedAt DateTime?
+
+  googleId   String? @unique
+  linkedInId String? @unique
+
+  profilePicture String?
+
+  isActive  Boolean @default(true)
+  isDeleted Boolean @default(false)
+
+
+  verificationTokens VerificationToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Existing relations
+  refreshTokens      RefreshToken[]
+  subscriptions      UserSubscription[]
+  enrollments        Enrollment[]
+  eventRegistrations EventRegistration[]
+
+  // Add these
+  courses  Course[]  @relation("InstructorCourses")
+  payments Payment[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String
+
+  deviceName String?
+  ipAddress  String?
+  userAgent  String?
+
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Course {
+  id String @id @default(uuid())
+
+  title       String
+  slug        String  @unique
+  description String? @db.Text
+
+  thumbnail   String?
+  bannerImage String?
+
+  price  Decimal @db.Decimal(10, 2)
+  isFree Boolean @default(false)
+
+  durationHours Int?
+
+  published Boolean @default(false)
+
+  instructorId String
+  instructor   User   @relation("InstructorCourses", fields: [instructorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enrollments Enrollment[]
+
+  @@map("courses")
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Enrollment {
+  id String @id @default(uuid())
+
+  userId   String
+  courseId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  progress Float @default(0)
+
+  status EnrollmentStatus @default(ACTIVE)
+
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+enum BillingCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+model SubscriptionPlan {
+  id String @id @default(uuid())
+
+  name        String
+  description String?
+
+  price Decimal @db.Decimal(10, 2)
+
+  billingCycle BillingCycle
+
+  courseLimit Int?
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions UserSubscription[]
+
+  @@map("subscription_plans")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+}
+
+model UserSubscription {
+  id String @id @default(uuid())
+
+  userId String
+  planId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plan SubscriptionPlan @relation(fields: [planId], references: [id])
+
+  status SubscriptionStatus @default(PENDING)
+
+  startDate DateTime
+  endDate   DateTime
+
+  autoRenew Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@map("user_subscriptions")
+}
+
+enum EventType {
+  WEBINAR
+  WORKSHOP
+  LIVE_CLASS
+}
+
+model Event {
+  id String @id @default(uuid())
+
+  title       String
+  description String? @db.Text
+
+  type EventType
+
+  startDate DateTime
+  endDate   DateTime
+
+  meetingLink String?
+
+  maxParticipants Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  registrations EventRegistration[]
+
+  @@map("events")
+}
+
+model EventRegistration {
+  id String @id @default(uuid())
+
+  userId  String
+  eventId String
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  attended Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+  @@map("event_registrations")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  amount Decimal @db.Decimal(10, 2)
+
+  currency String @default("INR")
+
+  paymentGateway String
+
+  gatewayOrderId   String?
+  gatewayPaymentId String?
+
+  status PaymentStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  @@map("payments")
+}
+model VerificationToken {
+  id        String   @id @default(uuid())
+
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  otp       String
+  verified  Boolean @default(false)
+
+  type      VerificationType
+
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@map("verification_tokens")
+}
+
+
+enum VerificationType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
