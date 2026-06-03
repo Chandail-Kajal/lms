@@ -27,11 +27,11 @@ export const login = async (
 
   if (!user) {
     throw new ApiError(401, "Invalid credentials");
-  
+
   }
   console.log(user);
 
-  if(!user.emailVerified){
+  if (!user.emailVerified) {
     throw new ApiError(401, "Please verify email before login")
   }
 
@@ -165,7 +165,7 @@ export const resendVerificationOTP =
     });
   };
 
-  export const forgotPassword = async (
+export const forgotPassword = async (
   email: string
 ) => {
   const user = await prisma.user.findFirst({
@@ -260,7 +260,7 @@ export const verifyPasswordResetOtp =
 
     return user;
   };
-  export const resetPassword =
+export const resetPassword =
   async (
     email: string,
     password: string
@@ -324,24 +324,12 @@ export const verifyPasswordResetOtp =
 
     return true;
   };
-  
-  export const changePassword = async (
+
+export const changePassword = async (
   userId: string,
   previousPassword: string | undefined,
   newPassword: string,
-  confirmPassword: string
 ) => {
-  if (!newPassword || !confirmPassword) {
-    throw new ApiError(400, "New password and confirm password are required");
-  }
-
-  if (newPassword !== confirmPassword) {
-    throw new ApiError(400, "New password and confirm password do not match");
-  }
-
-  if (newPassword.length < 8) {
-    throw new ApiError(400, "New password must be at least 8 characters long");
-  }
 
   const user = await prisma.user.findUnique({
     where: { id: userId },

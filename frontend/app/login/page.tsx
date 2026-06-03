@@ -7,14 +7,11 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "sonner";
 import { useApi } from "@/hooks/useApi";
+import router from "next/navigation"
 
 const schema = yup.object({
-  username: yup
-    .string()
-    .required("Email or Mobile Number is required"),
-  password: yup
-    .string()
-    .required("Password is required"),
+  username: yup.string().required("Email or Mobile Number is required"),
+  password: yup.string().required("Password is required"),
   remember: yup.boolean().default(false),
 });
 
@@ -25,13 +22,7 @@ type LoginFormData = {
 };
 
 const LoginPage = () => {
-  const {
-    request,
-    loading,
-    success,
-    error,
-    message,
-  } = useApi();
+  const { request, loading, success, error, message } = useApi();
 
   const {
     register,
@@ -56,25 +47,16 @@ const LoginPage = () => {
     }
   }, [error]);
 
-  const onSubmit = async (
-    data: LoginFormData
-  ) => {
-    const response = await request({
+  const onSubmit = async (data: LoginFormData) => {
+    const response: any = await request({
       url: "/auth/login",
       method: "POST",
       body: data,
     });
 
     if (response) {
-      console.log(response);
-
-      // Example:
-      // localStorage.setItem(
-      //   "accessToken",
-      //   response.data.accessToken
-      // );
-
-      // router.push("/dashboard");
+      localStorage.setItem("accessToken", response.data.accessToken);
+      router.redirect("/profile");
     }
   };
 
@@ -90,34 +72,23 @@ const LoginPage = () => {
           <div className="hidden md:flex flex-col justify-center p-10 bg-linear-to-br from-indigo-900/50 to-slate-900/50">
             <h1 className="text-5xl font-bold text-white leading-tight">
               Welcome
-              <span className="block text-cyan-400">
-                Back
-              </span>
+              <span className="block text-cyan-400">Back</span>
             </h1>
 
             <p className="mt-6 text-slate-300 text-lg">
-              Continue your learning journey and
-              access courses, certifications,
+              Continue your learning journey and access courses, certifications,
               assignments, and events.
             </p>
 
             <div className="mt-10 flex gap-4">
               <div className="rounded-xl bg-white/10 px-5 py-4">
-                <p className="text-2xl font-bold text-cyan-400">
-                  100+
-                </p>
-                <p className="text-sm text-slate-300">
-                  Courses
-                </p>
+                <p className="text-2xl font-bold text-cyan-400">100+</p>
+                <p className="text-sm text-slate-300">Courses</p>
               </div>
 
               <div className="rounded-xl bg-white/10 px-5 py-4">
-                <p className="text-2xl font-bold text-cyan-400">
-                  10k+
-                </p>
-                <p className="text-sm text-slate-300">
-                  Students
-                </p>
+                <p className="text-2xl font-bold text-cyan-400">10k+</p>
+                <p className="text-sm text-slate-300">Students</p>
               </div>
             </div>
           </div>
@@ -126,19 +97,14 @@ const LoginPage = () => {
           <div className="p-6 sm:p-10 flex items-center">
             <div className="w-full">
               <div className="mb-8 text-center">
-                <h2 className="text-3xl font-bold text-white">
-                  Sign In
-                </h2>
+                <h2 className="text-3xl font-bold text-white">Sign In</h2>
 
                 <p className="mt-2 text-slate-400">
                   Login to continue learning
                 </p>
               </div>
 
-              <form
-                onSubmit={handleSubmit(onSubmit)}
-                className="space-y-5"
-              >
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {/* Username */}
                 <div>
                   <input
@@ -180,17 +146,15 @@ const LoginPage = () => {
                       className="h-4 w-4 rounded border-slate-500 bg-transparent accent-cyan-500"
                     />
 
-                    <span className="text-sm text-slate-300">
-                      Remember Me
-                    </span>
+                    <span className="text-sm text-slate-300">Remember Me</span>
                   </label>
                   <a href="/forgot-password">
-                  <button
-                    type="button"
-                    className="text-sm text-cyan-400 hover:text-cyan-300"
-                  >
-                    Forgot Password?
-                  </button>
+                    <button
+                      type="button"
+                      className="text-sm text-cyan-400 hover:text-cyan-300"
+                    >
+                      Forgot Password?
+                    </button>
                   </a>
                 </div>
 
@@ -200,9 +164,7 @@ const LoginPage = () => {
                   disabled={loading}
                   className="w-full rounded-xl bg-linear-to-r from-cyan-500 to-indigo-500 py-3 font-semibold text-white transition hover:scale-[1.02] hover:shadow-lg hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading
-                    ? "Signing In..."
-                    : "Sign In"}
+                  {loading ? "Signing In..." : "Sign In"}
                 </button>
 
                 <p className="text-center text-sm text-slate-400">

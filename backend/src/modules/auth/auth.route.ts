@@ -17,7 +17,7 @@ export const authRouter = express.Router();
 
 authRouter.post(
   "/register",
-  uploadSingle("profile"),
+  uploadSingle("profilePicture"),
   async (req, res, next) => {
     try {
       const {
@@ -167,7 +167,7 @@ authRouter.post(
       const tokenPayload = {
         userId: user.id,
         email: user.email,
-        role: user.role,
+        userRole: user.role,
       };
 
       const accessToken =
@@ -199,7 +199,7 @@ authRouter.post(
         message: "Login successful",
         data: {
           accessToken,
-          homeRoute: "/dashboard",
+          homeRoute: "/profile",
           user: {
             id: user.id,
             name: user.name,
@@ -247,9 +247,7 @@ authRouter.get(
         );
       }
 
-      return res.status(200).json({
-        data: user,
-      });
+      return res.apiResponse(200, "success", user)
     } catch (error) {
       next(error);
     }
@@ -259,12 +257,13 @@ authRouter.get(
 authRouter.put(
   "/profile",
   auth,
+  uploadSingle("profilePicture"),
   async (req, res, next) => {
     try {
       const {
         name,
         mobileNumber,
-        profilePicture,
+        email
       } = req.body;
 
       const user =
@@ -277,9 +276,7 @@ authRouter.put(
             ...(mobileNumber && {
               mobileNumber,
             }),
-            ...(profilePicture && {
-              profilePicture,
-            }),
+            ...(email && { email })
           },
           select: {
             id: true,
@@ -308,9 +305,8 @@ authRouter.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const {
-        previousPassword,
+        oldPassword: previousPassword,
         newPassword,
-        confirmPassword,
       } = req.body;
 
       const userId = req.auth?.userId as string;
@@ -319,12 +315,9 @@ authRouter.post(
         userId,
         previousPassword,
         newPassword,
-        confirmPassword
       );
 
-      return res.status(200).json({
-        message: "Password changed successfully",
-      });
+      return res.apiResponse(200, "Password changed successfully");
     } catch (error) {
       next(error);
     }
