@@ -15,6 +15,7 @@ import { corsConfig } from "./config/cors";
 
 import { limiter } from "./middlewares/request-limiter";
 import { logger } from "./config/logger";
+import path from "node:path";
 //import passport from "./config/passport";
 
 export const app: Application = express();
@@ -28,12 +29,14 @@ app.use(
 if (env.IS_PRODUCTION) {
   app.use(limiter)
 }
+app.use("/public",express.static(path.join(process.cwd(),"src","uploads")))
 //app.use(passport.initialize())
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(apiResponseMiddleware);
+
 
 app.use((req, res, next) => {
   logger.info(`URL: [${req.url}]`)

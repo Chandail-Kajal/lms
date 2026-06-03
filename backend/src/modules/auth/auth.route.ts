@@ -12,6 +12,8 @@ import { prisma } from "@/config/prisma";
 import { mailer } from "@/config/mailer";
 import passport from "@/config/passport";
 import { User } from "@/generated/prisma/client";
+import { rename, unlink } from "node:fs/promises";
+import path from "node:path";
 
 export const authRouter = express.Router();
 
@@ -19,6 +21,7 @@ authRouter.post(
   "/register",
   uploadSingle("profilePicture"),
   async (req, res, next) => {
+    const file = req.file
     try {
       const {
         email,
@@ -27,12 +30,14 @@ authRouter.post(
         mobileNumber,
       } = req.body;
 
+      // throw new ApiError(400, "success")
       const user =
         await registerUser({
           email,
           password,
           name,
           mobileNumber,
+          profilePicture: file?.filename || null
         });
 
       res.apiResponse(
@@ -42,6 +47,9 @@ authRouter.post(
       );
     } catch (error) {
       next(error);
+      if (file) {
+        await unlink(file?.path)
+      }
     }
   }
 );
@@ -247,7 +255,7 @@ authRouter.get(
         );
       }
 
-      return res.apiResponse(200, "success", user)
+      return res.apiResponse(200, "success", { ...user, profilePicture: user.profilePicture ? `http://localhost:${env.PORT}/public/${user.profilePicture}` : "" })
     } catch (error) {
       next(error);
     }
@@ -259,6 +267,7 @@ authRouter.put(
   auth,
   uploadSingle("profilePicture"),
   async (req, res, next) => {
+    const file = req.file
     try {
       const {
         name,
@@ -266,6 +275,10 @@ authRouter.put(
         email
       } = req.body;
 
+      const existing = await prisma.user.findUnique({ where: { id: req.auth?.userId as string } })
+      if (existing?.profilePicture) {
+        await unlink(path.join(process.cwd(), "src", "uploads", existing.profilePicture))
+      }
       const user =
         await prisma.user.update({
           where: {
@@ -276,7 +289,8 @@ authRouter.put(
             ...(mobileNumber && {
               mobileNumber,
             }),
-            ...(email && { email })
+            ...(email && { email }),
+            ...(file && { profilePicture: file.filename })
           },
           select: {
             id: true,
@@ -295,6 +309,9 @@ authRouter.put(
       });
     } catch (error) {
       next(error);
+      if (file) {
+        await unlink(file?.path)
+      }
     }
   }
 );

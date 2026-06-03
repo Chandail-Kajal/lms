@@ -8,6 +8,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { toast } from "sonner";
 import { useApi } from "@/hooks/useApi";
 import router from "next/navigation";
+import { Pencil } from "lucide-react";
 
 const profileSchema = yup.object({
   name: yup.string().required("Name is required"),
@@ -47,6 +48,8 @@ const ProfilePage = () => {
   const passwordApi = useApi<any>();
 
   const [profile, setProfile] = useState<any>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
 
   const profileForm = useForm<ProfileFormData>({
     resolver: yupResolver(profileSchema),
@@ -73,6 +76,7 @@ const ProfilePage = () => {
 
       if (user) {
         setProfile(user);
+        setPreview(user.profilePicture || null);
 
         profileForm.reset({
           name: user.name ?? "",
@@ -86,11 +90,11 @@ const ProfilePage = () => {
     loadProfile();
   }, []);
 
-  useEffect(()=>{
-    if(profileApi.error){
-      router.redirect("/login")
+  useEffect(() => {
+    if (profileApi.error) {
+      router.redirect("/login");
     }
-  },[profileApi.loading, profileApi.error])
+  }, [profileApi.loading, profileApi.error]);
 
   useEffect(() => {
     if (updateApi.success) {
@@ -118,10 +122,20 @@ const ProfilePage = () => {
   }, [passwordApi.error]);
 
   const onProfileSubmit = async (data: ProfileFormData) => {
+    const formData = new FormData();
+
+    formData.append("name", data.name);
+    formData.append("email", data.email);
+    formData.append("mobileNumber", data.mobileNumber);
+
+    if (profileImage) {
+      formData.append("profilePicture", profileImage);
+    }
+
     const response: any = await updateApi.request({
       url: "/auth/profile",
       method: "PUT",
-      body: data,
+      body: formData,
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -157,18 +171,44 @@ const ProfilePage = () => {
         <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
           <div className="border-b border-white/10 p-8">
             <div className="flex flex-col md:flex-row items-center gap-6">
-              <div className="h-28 w-28 overflow-hidden rounded-full border border-white/10 bg-white/5">
-                {profile?.profilePicture ? (
-                  <img
-                    src={profile.profilePicture}
-                    alt={profile.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-cyan-400">
-                    {profile?.name?.charAt(0)?.toUpperCase()}
+              <div className="h-28 w-28 rounded-full border border-white/10 bg-white/5">
+                <div className="relative">
+                  <div className="h-28 w-28 overflow-hidden rounded-full border border-white/10 bg-white/5">
+                    {preview ? (
+                      <img
+                        src={preview}
+                        alt={profile?.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-cyan-400">
+                        {profile?.name?.charAt(0)?.toUpperCase()}
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  <label
+                    htmlFor="profile-image"
+                    className="absolute bottom-0 right-0 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg transition hover:scale-110"
+                  >
+                    <Pencil size={16} />
+                  </label>
+
+                  <input
+                    id="profile-image"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+
+                      if (!file) return;
+
+                      setProfileImage(file);
+                      setPreview(URL.createObjectURL(file));
+                    }}
+                  />
+                </div>
               </div>
 
               <div>
@@ -243,14 +283,6 @@ const ProfilePage = () => {
                 <p className="mt-1 text-sm text-red-400">
                   {profileForm.formState.errors.mobileNumber?.message}
                 </p>
-              </div>
-
-              <div>
-                <input
-                  {...profileForm.register("profilePicture")}
-                  placeholder="Profile Picture URL"
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400"
-                />
               </div>
 
               <div className="md:col-span-2">
