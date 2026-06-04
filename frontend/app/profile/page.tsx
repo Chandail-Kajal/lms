@@ -1,3 +1,6 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react/no-unescaped-entities */
 "use client";
 
@@ -224,11 +227,10 @@ const ProfilePage = () => {
                   </span>
 
                   <span
-                    className={`rounded-full px-3 py-1 text-xs ${
-                      profile?.emailVerified
-                        ? "bg-green-500/20 text-green-300"
-                        : "bg-yellow-500/20 text-yellow-300"
-                    }`}
+                    className={`rounded-full px-3 py-1 text-xs ${profile?.emailVerified
+                      ? "bg-green-500/20 text-green-300"
+                      : "bg-yellow-500/20 text-yellow-300"
+                      }`}
                   >
                     {profile?.emailVerified
                       ? "Email Verified"
@@ -390,6 +392,12 @@ const ProfilePage = () => {
             </div>
           </form>
         </div>
+        <button
+          onClick={handleLogout()}
+          className="mt-4 md:mt-0 rounded-xl bg-red-500 px-5 py-2 font-medium text-white transition hover:bg-red-600"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );
