@@ -163,6 +163,15 @@ const ProfilePage = () => {
     });
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken"); // if you're using refresh token
+
+    toast.success("Logged out successfully");
+
+    window.location.href = "/login";
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-950 via-indigo-950 to-slate-900 px-4 py-10">
       <div className="absolute top-0 left-0 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
@@ -227,10 +236,11 @@ const ProfilePage = () => {
                   </span>
 
                   <span
-                    className={`rounded-full px-3 py-1 text-xs ${profile?.emailVerified
-                      ? "bg-green-500/20 text-green-300"
-                      : "bg-yellow-500/20 text-yellow-300"
-                      }`}
+                    className={`rounded-full px-3 py-1 text-xs ${
+                      profile?.emailVerified
+                        ? "bg-green-500/20 text-green-300"
+                        : "bg-yellow-500/20 text-yellow-300"
+                    }`}
                   >
                     {profile?.emailVerified
                       ? "Email Verified"
@@ -393,7 +403,7 @@ const ProfilePage = () => {
           </form>
         </div>
         <button
-          onClick={handleLogout()}
+          onClick={handleLogout}
           className="mt-4 md:mt-0 rounded-xl bg-red-500 px-5 py-2 font-medium text-white transition hover:bg-red-600"
         >
           Logout
